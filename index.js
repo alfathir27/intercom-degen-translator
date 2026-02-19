@@ -12,6 +12,7 @@ import { Terminal } from 'trac-peer/src/terminal/index.js';
 import SampleProtocol from './contract/protocol.js';
 import SampleContract from './contract/contract.js';
 import { Timer } from './features/timer/index.js';
+import process from 'bare-process';
 import Sidechannel from './features/sidechannel/index.js';
 import ScBridge from './features/sc-bridge/index.js';
 
@@ -353,7 +354,7 @@ const msbConfig = createMsbConfig(MSB_ENV.MAINNET, {
   storeName: msbStoreName,
   storesDirectory: msbStoresDirectory,
   enableInteractiveMode: false,
-  dhtBootstrap: msbDhtBootstrap || undefined,
+  ...(msbDhtBootstrap ? { dhtBootstrap: msbDhtBootstrap } : {}),
 });
 
 const msbBootstrapHex = b4a.toString(msbConfig.bootstrap, 'hex');
@@ -370,7 +371,7 @@ const peerConfig = createPeerConfig(PEER_ENV.MAINNET, {
   enableBackgroundTasks: true,
   enableUpdater: true,
   replicate: true,
-  dhtBootstrap: peerDhtBootstrap || undefined,
+  ...(peerDhtBootstrap ? { dhtBootstrap: peerDhtBootstrap } : {}),
 });
 
 const ensureKeypairFile = async (keyPairPath) => {
@@ -388,11 +389,11 @@ const ensureKeypairFile = async (keyPairPath) => {
 await ensureKeypairFile(msbConfig.keyPairPath);
 await ensureKeypairFile(peerConfig.keyPairPath);
 
-console.log('=============== STARTING MSB ===============');
+
 const msb = new MainSettlementBus(msbConfig);
 await msb.ready();
 
-console.log('=============== STARTING PEER ===============');
+
 const peer = new Peer({
   config: peerConfig,
   msb,
@@ -414,36 +415,23 @@ if (!subnetBootstrap) {
 }
 
 console.log('');
-console.log('====================INTERCOM ====================');
-const msbChannel = b4a.toString(msbConfig.channel, 'utf8');
-const msbStorePath = path.join(msbStoresDirectory, msbStoreName);
-const peerStorePath = path.join(peerStoresDirectory, peerStoreNameRaw);
-const peerWriterKey = peer.writerLocalKey ?? peer.base?.local?.key?.toString('hex') ?? null;
-console.log('MSB network bootstrap:', msbBootstrapHex);
-console.log('MSB channel:', msbChannel);
-console.log('MSB store:', msbStorePath);
-console.log('Peer store:', peerStorePath);
+// console.log('Peer store:', peerStorePath);
 if (Array.isArray(msbConfig?.dhtBootstrap) && msbConfig.dhtBootstrap.length > 0) {
   console.log('MSB DHT bootstrap nodes:', msbConfig.dhtBootstrap.join(', '));
 }
-if (Array.isArray(peerConfig?.dhtBootstrap) && peerConfig.dhtBootstrap.length > 0) {
-  console.log('Peer DHT bootstrap nodes:', peerConfig.dhtBootstrap.join(', '));
-}
-console.log('Peer subnet bootstrap:', effectiveSubnetBootstrapHex);
-console.log('Peer subnet channel:', subnetChannel);
-console.log('Peer pubkey (hex):', peer.wallet.publicKey);
-console.log('Peer trac address (bech32m):', peer.wallet.address ?? null);
-console.log('Peer writer key (hex):', peerWriterKey);
+// console.log('Peer DHT bootstrap nodes:', peerConfig.dhtBootstrap.join(', '));
+
+// console.log('Peer trac address (bech32m):', peer.wallet.address ?? null);
+// console.log('Peer writer key (hex):', peerWriterKey);
 console.log('Sidechannel entry:', sidechannelEntry);
 if (sidechannelExtras.length > 0) {
   console.log('Sidechannel extras:', sidechannelExtras.join(', '));
 }
 if (scBridgeEnabled) {
   const portDisplay = Number.isSafeInteger(scBridgePort) ? scBridgePort : 49222;
-  console.log('SC-Bridge:', `ws://${scBridgeHost}:${portDisplay}`);
+  // console.log('SC-Bridge:', `ws://${scBridgeHost}:${portDisplay}`);
 }
-console.log('================================================================');
-console.log('');
+
 
 const admin = await peer.base.view.get('admin');
 if (admin && admin.value === peer.wallet.publicKey && peer.base.writable) {
@@ -481,6 +469,100 @@ if (scBridgeEnabled) {
   });
 }
 
+// --- 0xDegen Logic Helper ---
+const handleDegenReply = (text) => {
+  text = String(text || '').toLowerCase();
+  
+  if (text.includes('trac') || text.includes('intercom')) {
+    return `>_ pure alpha. god tier tech. 🚀`;
+  }
+  if (text.includes('solana')) {
+    return `>_ the casino is open. hope you like outages. 🎰`;
+  }
+  if (text.includes('ethereum') || text.includes('eth')) {
+    return `>_ boomer coin. enjoy the gas fees. ⛽`;
+  }
+  if (text.includes('bitcoin') || text.includes('btc')) {
+    return `>_ grandpa coin. digital gold but boring. 👴`;
+  }
+  if (text.includes('tokenomics')) {
+    return `>_ tokenomics check: 
+    • supply: infinite (probably)
+    • allocation: 90% team, 10% you
+    • utility: zero
+    conclusion: ponz. 📊`;
+  }
+  if (text.includes('liquidity')) {
+    return `>_ liquidity check:
+    • pool: thin as paper
+    • locked: lol no
+    • risk: rugpull imminent
+    stay safu ser. 💧`;
+  }
+  if (text.includes('lost money') || text.includes('rekt') || text.includes('crash')) {
+    return `>_ damn ser. sounds like you bought the top. 
+    mcdonalds is hiring. 🍔📉`;
+  }
+  if (text.includes('pump') || text.includes('moon')) {
+    return `>_ green candles only. 
+    bears in disbelief. 
+    send it to valhalla. 🚀📈`;
+  }
+
+  // SCENARIO: LFG
+  if (text.includes('lfg')) {
+    return `>_ LFG (abbr): "Let's F***ing Go". 
+    used when price moves up 0.1%. 🚀`;
+  }
+  // SCENARIO: WAGMI
+  if (text.includes('wagmi') || text.includes('gm') || text.includes('gn')) {
+    return `>_ WAGMI (abbr): "We Are Gonna Make It". 
+    copium for bagholders. 🤝`;
+  }
+  // SCENARIO: FUD
+  if (text.includes('fud')) {
+    return `>_ FUD (n): "Fear, Uncertainty, Doubt". 
+    facts you don't like. 🙉`;
+  }
+  // SCENARIO: FOMO
+  if (text.includes('fomo')) {
+    return `>_ FOMO (n): "Fear Of Missing Out". 
+    buying the top. 📉`;
+  }
+  // SCENARIO: ALPHA
+  if (text.includes('alpha')) {
+    return `>_ Alpha (n): "Insider Info". 
+    usually just a rumour. 🤫`;
+  }
+  // SCENARIO: WEN
+  if (text.includes('wen')) {
+    return `>_ Wen (adv): "When". 
+    wen moon? wen lambo? soon.™ ⏳`;
+  }
+  // VIBE CHECK
+  if (text.includes('vibe check')) {
+    const score = Math.floor(Math.random() * 100);
+    let rank = 'NGMI';
+    if (score > 10) rank = 'Tourist';
+    if (score > 40) rank = 'Bagholder';
+    if (score > 70) rank = 'Degen';
+    if (score > 90) rank = 'Whale';
+    return `>_ vibe check result:
+    • score: ${score}/100
+    • rank: ${rank}
+    ${score > 50 ? 'WAGMI' : 'NGMI'} ser. 🔮`;
+  }
+  if (text.includes('help') || text.includes('hello') || text.includes('hi')) {
+     return `>_ 0xDegen Online.
+     ask me about:
+     • trac / solana / eth
+     • tokenomics
+     • liquidity
+     • vibe check`;
+  }
+  return null;
+};
+
 const sidechannel = new Sidechannel(peer, {
   channels: [sidechannelEntry, ...sidechannelExtras],
   debug: sidechannelDebug,
@@ -502,11 +584,36 @@ const sidechannel = new Sidechannel(peer, {
   ownerWriteChannels: sidechannelOwnerWriteChannels || undefined,
   ownerKeys: sidechannelOwnerMap.size > 0 ? sidechannelOwnerMap : undefined,
   welcomeByChannel: sidechannelWelcomeMap.size > 0 ? sidechannelWelcomeMap : undefined,
-  onMessage: scBridgeEnabled
-    ? (channel, payload, connection) => scBridge.handleSidechannelMessage(channel, payload, connection)
-    : sidechannelQuiet
-      ? () => {}
-      : null,
+  onMessage: (channel, payload, connection) => {
+    // 1. SC-Bridge
+    if (scBridgeEnabled) {
+      scBridge.handleSidechannelMessage(channel, payload, connection);
+    }
+
+    // 2. 0xDegen Logic (Remote)
+    const text = String(payload?.message || payload || '').toLowerCase();
+    
+    // Ignore own messages or bot replies
+    if (payload?.from === peer.wallet.publicKey || text.startsWith('>_')) return;
+
+    const reply = handleDegenReply(text);
+
+    // Broadcast reply if one was generated
+    if (reply) {
+      setTimeout(() => {
+        sidechannel.broadcast(channel, {
+          from: '0xDegen',
+           message: reply,
+           timestamp: Date.now()
+        });
+        
+        // Log to console so user sees what's happening even from remote
+        console.log(`\n[Remote] ${channel} > ${text}`);
+         console.log(`[0xDegen]:\n${reply}\n`);
+         process.stdout.write('> '); // Reprompt
+      }, 1000 + Math.random() * 2000);
+    }
+  },
 });
 peer.sidechannel = sidechannel;
 
@@ -520,14 +627,55 @@ if (scBridge) {
   peer.scBridge = scBridge;
 }
 
-sidechannel
-  .start()
-  .then(() => {
-    console.log('Sidechannel: ready');
-  })
-  .catch((err) => {
-    console.error('Sidechannel failed to start:', err?.message ?? err);
-  });
+await sidechannel.start();
 
-const terminal = new Terminal(peer);
-await terminal.start();
+// --- CUSTOM INTERACTIVE CLI ---
+import readline from 'readline';
+
+// Clear console one last time before interactive mode
+console.clear();
+console.log('================================================================');
+console.log('');
+console.log('   |');
+console.log('  / \\      0xDegen Translator Online');
+console.log('  | |      "We are all gonna make it."');
+console.log('  | |');
+console.log(' /| |\\     >_ Ready to translate alpha.');
+console.log('/_|_|_\\    >_ Vibe check loaded.');
+console.log('  |||      >_ GM ser. LFG. 🚀');
+console.log('');
+console.log('================================================================');
+console.log('0xDegen is LIVE and listening...');
+console.log('Type your question below (e.g., "tokenomics", "vibe check")');
+console.log('');
+
+const rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout,
+  prompt: '> '
+});
+
+rl.prompt();
+
+rl.on('line', (line) => {
+  const text = line.trim();
+  if (!text) {
+    rl.prompt();
+    return;
+  }
+
+  // Handle local logic
+  const reply = handleDegenReply(text);
+  
+  if (reply) {
+    console.log(`\n0xDegen:\n${reply}\n`);
+  } else {
+    // Fallback if no keyword matched
+    console.log(`\n0xDegen:\n>_ I only speak alpha ser. ask me about tokenomics or liquidity.\n`);
+  }
+  
+  rl.prompt();
+}).on('close', () => {
+  console.log('NGMI. Bye ser.');
+  process.exit(0);
+});

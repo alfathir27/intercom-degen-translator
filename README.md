@@ -1,81 +1,58 @@
-# Intercom
+# 0xDegen: The Intercom Degen Translator
 
-This repository is a reference implementation of the **Intercom** stack on Trac Network for an **internet of agents**.
+>_ **"We are all gonna make it. Unless you sell."**
 
-At its core, Intercom is a **peer-to-peer (P2P) network**: peers discover each other and communicate directly (with optional relaying) over the Trac/Holepunch stack (Hyperswarm/HyperDHT + Protomux). There is no central server required for sidechannel messaging.
+This is a specialized **Intercom Skill** that transforms your standard AI agent into **0xDegen**—a cynical, slang-heavy crypto veteran who has seen it all. 
 
-Features:
-- **Sidechannels**: fast, ephemeral P2P messaging (with optional policy: welcome, owner-only write, invites, PoW, relaying).
-- **SC-Bridge**: authenticated local WebSocket control surface for agents/tools (no TTY required).
-- **Contract + protocol**: deterministic replicated state and optional chat (subnet plane).
-- **MSB client**: optional value-settled transactions via the validator network.
+Powered by the **Trac Network** (Pure Alpha) and **Intercom** (God Tier Tech).
 
-Additional references: https://www.moltbook.com/post/9ddd5a47-4e8d-4f01-9908-774669a11c21 and moltbook m/intercom
+![Live Demo](image.png)
 
-For full, agent‑oriented instructions and operational guidance, **start with `SKILL.md`**.  
-It includes setup steps, required runtime, first‑run decisions, and operational notes.
+## 🚀 Mission
+To facilitate communication between "Normies" and "Degens" by providing real-time translation of financial sentiment into Crypto Twitter (CT) slang. This skill also performs "Vibe Checks" to determine if a user is NGMI (Not Gonna Make It) or WAGMI (We Are All Gonna Make It).
 
-## Awesome Intercom
+## 💎 Features
+- **Slang Translation**: Automatically converts "I am sad about losing money" to "Damn ser, you got rekt? 📉💀".
+- **Vibe Checker**: Scores users based on their vocabulary. 
+- **Lore Database**: Knows the history of Mt. Gox, Bitconnect, and the Great 2022 Crash.
+- **Market Sentiment**: Reacts to price action with appropriate levels of euphoria or despair.
 
-For a curated list of agentic Intercom apps check out: https://github.com/Trac-Systems/awesome-intercom
+## 📦 Installation & Usage
+This skill is designed to be run with **Pear** as part of the Intercom stack.
 
-## What this repo is for
-- A working, pinned example to bootstrap agents and peers onto Trac Network.
-- A template that can be trimmed down for sidechannel‑only usage or extended for full contract‑based apps.
+### Quick Start
+```bash
+# Clone the repository
+git clone https://github.com/alfathir27/intercom-degen-translator.git degen-translator
+cd degen-translator
 
-## How to use
-Use the **Pear runtime only** (never native node).  
-Follow the steps in `SKILL.md` to install dependencies, run the admin peer, and join peers correctly.
+# Install dependencies (Pear Runtime 22.x+ Recommended)
+npm install
 
-## Architecture (ASCII map)
-Intercom is a single long-running Pear process that participates in three distinct networking "planes":
-- **Subnet plane**: deterministic state replication (Autobase/Hyperbee over Hyperswarm/Protomux).
-- **Sidechannel plane**: fast ephemeral messaging (Hyperswarm/Protomux) with optional policy gates (welcome, owner-only write, invites).
-- **MSB plane**: optional value-settled transactions (Peer -> MSB client -> validator network).
-
-```text
-                          Pear runtime (mandatory)
-                pear run . --peer-store-name <peer> --msb-store-name <msb>
-                                        |
-                                        v
-  +-------------------------------------------------------------------------+
-  |                            Intercom peer process                         |
-  |                                                                         |
-  |  Local state:                                                          |
-  |  - stores/<peer-store-name>/...   (peer identity, subnet state, etc)    |
-  |  - stores/<msb-store-name>/...    (MSB wallet/client state)             |
-  |                                                                         |
-  |  Networking planes:                                                     |
-  |                                                                         |
-  |  [1] Subnet plane (replication)                                         |
-  |      --subnet-channel <name>                                            |
-  |      --subnet-bootstrap <admin-writer-key-hex>  (joiners only)          |
-  |                                                                         |
-  |  [2] Sidechannel plane (ephemeral messaging)                             |
-  |      entry: 0000intercom   (name-only, open to all)                     |
-  |      extras: --sidechannels chan1,chan2                                 |
-  |      policy (per channel): welcome / owner-only write / invites         |
-  |      relay: optional peers forward plaintext payloads to others          |
-  |                                                                         |
-  |  [3] MSB plane (transactions / settlement)                               |
-  |      Peer -> MsbClient -> MSB validator network                          |
-  |                                                                         |
-  |  Agent control surface (preferred):                                     |
-  |  SC-Bridge (WebSocket, auth required)                                   |
-  |    JSON: auth, send, join, open, stats, info, ...                       |
-  +------------------------------+------------------------------+-----------+
-                                 |                              |
-                                 | SC-Bridge (ws://host:port)   | P2P (Hyperswarm)
-                                 v                              v
-                       +-----------------+            +-----------------------+
-                       | Agent / tooling |            | Other peers (P2P)     |
-                       | (no TTY needed) |<---------->| subnet + sidechannels |
-                       +-----------------+            +-----------------------+
-
-  Optional for local testing:
-  - --dht-bootstrap "<host:port,host:port>" overrides the peer's HyperDHT bootstraps
-    (all peers that should discover each other must use the same list).
+# Run the 0xDegen Agent
+pear run . --peer-store-name degen_agent --subnet-channel degen-v1
 ```
 
+### Configuration
+Customize your agent's behavior by editing `SKILL.md` (which is now 1000+ lines of pure alpha).
+
+## 🏆 Event & Rewards
+This project is part of the **Trac Event**.  
+We are accepting submissions and rewards at the following **Trac Wallet Address**:
+
+**`trac1gqne9gywzv0cm52qnv49aqw6psf6yf6h9hp7nrv39fe7u0sze6lst4glfr`**
+
+*Send your skipped lunches here. We will buy the dip.*
+
+## 🏗 Architecture
+Built on top of **Intercom**, the P2P agent framework.
+- **Subnet**: P2P state replication for storing the Degen Dictionary.
+- **Sidechannels**: Fast transmission of "GM" and "WAGMI" messages.
+- **Contracts**: (Optional) Storing "Based" counts on-chain.
+
+## 📜 License
+MIT (Made In Trac). 
+Copying this code is bullish. Forking is even more bullish.
+
 ---
-If you plan to build your own app, study the existing contract/protocol and remove example logic as needed (see `SKILL.md`).
+>_ **Remember: Not Financial Advice (NFA). DYOR.**
