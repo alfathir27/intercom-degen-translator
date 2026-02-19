@@ -469,9 +469,21 @@ if (scBridgeEnabled) {
   });
 }
 
+// Load Vocabulary
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
+let vocabulary = {};
+try {
+  vocabulary = require('./vocabulary.json');
+} catch (e) {
+  console.error("Failed to load vocabulary.json", e);
+}
+
 // --- 0xDegen Logic Helper ---
 const handleDegenReply = (text) => {
-  text = String(text || '').toLowerCase();
+  text = String(text || '').toLowerCase().trim();
+  
+  // 1. Check for specific overrides / scenarios (High Priority)
   
   if (text.includes('trac') || text.includes('intercom')) {
     return `>_ pure alpha. god tier tech. 🚀`;
@@ -485,6 +497,7 @@ const handleDegenReply = (text) => {
   if (text.includes('bitcoin') || text.includes('btc')) {
     return `>_ grandpa coin. digital gold but boring. 👴`;
   }
+  
   if (text.includes('tokenomics')) {
     return `>_ tokenomics check: 
     • supply: infinite (probably)
@@ -508,37 +521,6 @@ const handleDegenReply = (text) => {
     bears in disbelief. 
     send it to valhalla. 🚀📈`;
   }
-
-  // SCENARIO: LFG
-  if (text.includes('lfg')) {
-    return `>_ LFG (abbr): "Let's F***ing Go". 
-    used when price moves up 0.1%. 🚀`;
-  }
-  // SCENARIO: WAGMI
-  if (text.includes('wagmi') || text.includes('gm') || text.includes('gn')) {
-    return `>_ WAGMI (abbr): "We Are Gonna Make It". 
-    copium for bagholders. 🤝`;
-  }
-  // SCENARIO: FUD
-  if (text.includes('fud')) {
-    return `>_ FUD (n): "Fear, Uncertainty, Doubt". 
-    facts you don't like. 🙉`;
-  }
-  // SCENARIO: FOMO
-  if (text.includes('fomo')) {
-    return `>_ FOMO (n): "Fear Of Missing Out". 
-    buying the top. 📉`;
-  }
-  // SCENARIO: ALPHA
-  if (text.includes('alpha')) {
-    return `>_ Alpha (n): "Insider Info". 
-    usually just a rumour. 🤫`;
-  }
-  // SCENARIO: WEN
-  if (text.includes('wen')) {
-    return `>_ Wen (adv): "When". 
-    wen moon? wen lambo? soon.™ ⏳`;
-  }
   // VIBE CHECK
   if (text.includes('vibe check')) {
     const score = Math.floor(Math.random() * 100);
@@ -554,12 +536,24 @@ const handleDegenReply = (text) => {
   }
   if (text.includes('help') || text.includes('hello') || text.includes('hi')) {
      return `>_ 0xDegen Online.
-     ask me about:
-     • trac / solana / eth
-     • tokenomics
-     • liquidity
-     • vibe check`;
+     Type any crypto slang to get a definition.
+     Try: 'fomo', 'wagmi', 'bagholder', 'rekt'`;
   }
+
+  // 2. Vocabulary Lookup (Lower Case Match)
+  // Check exact match first
+  if (vocabulary[text]) {
+      return `>_ ${text.toUpperCase()}: ${vocabulary[text]}`;
+  }
+
+  // Check if text contains a key (for multi-word inputs like "what is fomo")
+  for (const [key, def] of Object.entries(vocabulary)) {
+      // Simple strict inclusion check, can be improved with regex
+      if (text.includes(key)) {
+           return `>_ ${key.toUpperCase()}: ${def}`;
+      }
+  }
+
   return null;
 };
 
